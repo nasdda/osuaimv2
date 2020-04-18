@@ -1,33 +1,33 @@
 from hack import Hack
 from time import sleep
-from pynput import keyboard
-import threading
+from pynput.mouse import Controller
+from threading import Thread
 import sys
-from pyautogui import position, moveTo
+from pynput import keyboard
 
 
-file = r"C:\Users\Xin\AppData\Local\osu!\Songs\12145 Chemistry - Period\Chemistry - Period (KIA) [Harder].osu"
+file = r"filename"
 
-
+mouse = Controller()
 
 hack = Hack(file)
-t = threading.Thread(target=hack.start)
+task = Thread(target=hack.start)
 
-
-#### r to record and z to start
 started = False
 
 def on_press(key):
     global started
     try:
-        if (str(key.char) == 'z' or str(key.char) == 'x'):
-            hack.next()
+        if str(key.char) == 'q':
+            task.start()
     except:
         pass
+
 
 
 listener = keyboard.Listener(
     on_press=on_press)
 listener.start()
+
 listener.join()
 
