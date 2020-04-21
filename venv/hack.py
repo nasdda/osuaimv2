@@ -1,5 +1,33 @@
 from pynput.mouse import Controller
 from time import sleep
+import timeit
+import contextlib
+import ctypes
+from ctypes import wintypes
+
+winmm = ctypes.WinDLL('winmm')
+
+class TIMECAPS(ctypes.Structure):
+    _fields_ = (('wPeriodMin', wintypes.UINT),
+                ('wPeriodMax', wintypes.UINT))
+
+def _check_time_err(err, func, args):
+    if err:
+        raise WindowsError('%s error %d' % (func.__name__, err))
+    return args
+
+winmm.timeGetDevCaps.errcheck = _check_time_err
+winmm.timeBeginPeriod.errcheck = _check_time_err
+winmm.timeEndPeriod.errcheck = _check_time_err
+
+@contextlib.contextmanager
+def timer_resolution(msecs=0):
+    caps = TIMECAPS()
+    winmm.timeGetDevCaps(ctypes.byref(caps), ctypes.sizeof(caps))
+    msecs = min(max(msecs, caps.wPeriodMin), caps.wPeriodMax)
+    winmm.timeBeginPeriod(msecs)
+    yield
+    winmm.timeEndPeriod(msecs)
 
 
 class Hack:
@@ -20,7 +48,7 @@ class Hack:
             temp = self.timings[i][-1]
             self.timings[i][-1] -= curr
             curr = temp
-        self.timings = [[round((x*1.7)), round((y*1.6)), round(t / 1002, 5)] for x, y, t in self.timings]
+        self.timings = [[round((x*1.7)), round((y*1.6)), round((t / 1000)*0.995, 5)] for x, y, t in self.timings]
 
         prev = self.timings[0]
         print(prev)
@@ -43,7 +71,8 @@ class Hack:
         self.mouse.move(self.spos[0] - x, self.spos[1] - y)
         self.mouse.move(self.timings[0][0], self.timings[0][1])
         for x,y,d in self.timings[1:]:
-            sleep(d)
+            with timer_resolution(msecs=1):
+                sleep(d)
             self.mouse.move(x,y)
 
 

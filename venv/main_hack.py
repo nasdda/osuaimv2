@@ -6,7 +6,7 @@ import sys
 from pynput import keyboard
 
 
-file = r"filename"
+file = r"C:\Users\Xin\PycharmProjects\osuaim\venv\hitobjects"
 
 mouse = Controller()
 
